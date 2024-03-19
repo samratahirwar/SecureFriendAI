@@ -1,1 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{title}}</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+    }
 
+    #chat {
+        width: calc(100% - 20px);
+        max-width: 400px;
+        height: 400px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin: 10px;
+        overflow-y: scroll;
+        background-color: #fff;
+    }
+
+    #inputText {
+        width: calc(100% - 90px);
+        max-width: 300px;
+        padding: 5px;
+        margin: 5px 10px 5px 0;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        box-sizing: border-box;
+    }
+
+    #sendButton {
+        padding: 5px 10px;
+        margin: 5px;
+        border: none;
+        border-radius: 3px;
+        background-color: #007bff;
+        color: #fff;
+        cursor: pointer;
+    }
+
+    #sendButton:hover {
+        background-color: #0056b3;
+    }
+</style>
+</head>
+<body>
+    <div id="chat"></div>
+    <input type="text" id="inputText" placeholder="Type your message...">
+    <button id="sendButton" onclick="sendMessage()">Send</button>
+
+    <script>
+        function sendMessage() {
+            var inputText = document.getElementById('inputText').value;
+            if (inputText.trim() === '') return; // Don't send empty messages
+
+            var chat = document.getElementById('chat');
+            var message = document.createElement('div');
+            message.textContent = 'You: ' + inputText;
+            chat.appendChild(message);
+
+            document.getElementById('inputText').value = ''; // Clear the input field
+
+            // Send message to Django view using AJAX
+            var formData = new FormData();
+            formData.append('message', inputText);
+            fetch('/securefreiendresponse/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                message = document.createElement('div');
+                message.textContent = "AI:"+JSON.parse(data)['response'];
+                chat.appendChild(message);
+            })
+            .catch(error => console.error(error));
+        }
+    </script>
+</body>
+</html>
